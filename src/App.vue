@@ -1,12 +1,11 @@
 <template>
   <div id="app">
-    <ChatWindow msg="Welcome to Your Vue.js App"/>
+    <ChatWindow id="chat"/>
   </div>
 </template>
 
 <script>
 import ChatWindow from './components/ChatWindow.vue'
-import io from 'socket.io-client'
 
 export default {
   name: 'App',
@@ -14,9 +13,6 @@ export default {
     ChatWindow
   },
 }
-
-// eslint-disable-next-line no-unused-vars
-const socket = io();
 </script>
 
 <style>
@@ -27,5 +23,11 @@ const socket = io();
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
+}
+
+#chat {
+  margin: auto;
+  height: 100%;
+  max-width: 960px;
 }
 </style>
