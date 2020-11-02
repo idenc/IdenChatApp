@@ -1,19 +1,22 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <ChatWindow msg="Welcome to Your Vue.js App"/>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import ChatWindow from './components/ChatWindow.vue'
+import io from 'socket.io-client'
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
-  }
+    ChatWindow
+  },
 }
+
+// eslint-disable-next-line no-unused-vars
+const socket = io();
 </script>
 
 <style>
