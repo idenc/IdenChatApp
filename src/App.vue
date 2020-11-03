@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <ChatWindow id="chat"/>
+    <ChatWindow id="chat" class="center"/>
   </div>
 </template>
 
@@ -16,18 +16,26 @@ export default {
 </script>
 
 <style>
+body {
+  margin: 0;
+  height: 100vh;
+}
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+  height: 100%;
+  overflow: hidden;
 }
 
 #chat {
-  margin: auto;
-  height: 100%;
+  display: flex;
+  flex-direction: column;
   max-width: 960px;
+  margin: 10px auto auto;
+  height: calc(100% - 20px);
 }
 </style>
