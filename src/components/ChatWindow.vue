@@ -41,8 +41,10 @@ export default {
     socket.on('chat message', (msg) => {
       const messageBox = this.$refs.message_box;
       const li = document.createElement('li');
-      li.innerHTML = `<b>${msg.user}:</b> ${msg.message}`;
-      messageBox.append(li);
+      const timeStamp = new Date(msg.timestamp);
+      li.innerHTML = `${timeStamp.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
+ <span style="color: ${msg.color}; font-weight: bold;">${msg.user}:</span> ${msg.message}`;
+      messageBox.appendChild(li);
 
       this.$nextTick(() => {
         messageBox.scrollTop = messageBox.scrollHeight;
