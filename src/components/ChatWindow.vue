@@ -91,6 +91,12 @@ export default {
       this.users = this.users.filter(u => u !== user);
     });
 
+    // Server sends the chat history and user list
+    socket.on('chat info', (info) => {
+      this.users.push(...info.current_users);
+      this.chat_messages.push(...info.messages);
+    });
+
   }
 }
 </script>
