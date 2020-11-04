@@ -6,8 +6,13 @@
         </ul>
       </div>
 
-      <div id="user-list">
-
+      <div id="user-div">
+        <ul id="user-list">
+          <template v-for="user in users">
+            <li :style="{'color': user.color}" :key="user.username" v-if="user.username === username"><b>{{ user.username }} (you)</b></li>
+            <li :style="{'color': user.color}" :key="user.username" v-else>{{ user.username }}</li>
+          </template>
+        </ul>
       </div>
 
       <form @submit.prevent="sendMessage">
@@ -19,6 +24,7 @@
 </template>
 
 <script>
+"use strict";
 import io from 'socket.io-client'
 
 const socket = io();
@@ -29,6 +35,8 @@ export default {
     return {
       message: '',
       username: '',
+      users: [],
+      color: ''
     }
   },
   methods: {
@@ -38,6 +46,18 @@ export default {
     }
   },
   mounted: function () {
+    socket.on('connect', () => {
+      if (localStorage.username && localStorage.color) {
+        this.username = localStorage.username;
+        this.color = localStorage.color;
+        const user = {username: this.username, color: this.color}
+        this.users.push(user);
+        socket.emit('user info', user);
+      } else {
+        socket.emit('user info', null);
+      }
+    });
+
     socket.on('chat message', (msg) => {
       const messageBox = this.$refs.message_box;
       const li = document.createElement('li');
@@ -51,17 +71,38 @@ export default {
       });
     });
 
+    socket.on('user info', (user) => {
+      localStorage.username = user.username;
+      localStorage.color = user.color;
+      this.username = user.username;
+      this.color = user.color;
+      this.users.push(user);
+    })
+
+    socket.on('user joined', (user) => {
+      if (user !== this.username) {
+        this.users.push(user);
+      }
+    });
+
+    socket.on('user left', (user) => {
+      this.users = this.users.filter(u => u !== user);
+    });
+
   }
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-#chat-log ul {
+ul {
   list-style-type: none;
-  padding: 10px;
   margin: 0;
+  padding: 10px;
   text-align: left;
+}
+
+#chat-log ul {
   position: absolute;
   bottom: 0;
 }
@@ -81,7 +122,7 @@ export default {
   width: 100%;
 }
 
-#user-list {
+#user-div {
   background: grey;
   grid-area: r;
 }

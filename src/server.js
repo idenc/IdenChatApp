@@ -9,8 +9,16 @@ app.use(serveStatic(__dirname + '../dist'));
 
 const usernameGen = {
     adjectives: ['small', 'ugly', 'big', 'beautiful', 'angry', 'sad', 'happy'],
-    nouns: ['bear', 'panda', 'fish', 'frog', 'snake', 'kangaroo']
+    nouns: ['bear', 'panda', 'fish', 'frog', 'snake', 'kangaroo'],
+    indexes: []
 };
+
+
+for (let i = 0; i < usernameGen.adjectives.length; i++) {
+    for (let j = 0; j < usernameGen.nouns.length; j++) {
+        usernameGen.indexes.push([i, j]);
+    }
+}
 
 // Color code from https://stackoverflow.com/questions/10014271/generate-random-color-distinguishable-to-humans
 const Colors = {};
@@ -72,19 +80,30 @@ Colors.random = function () {
 };
 
 function pickUsername() {
-    const rA = Math.floor(Math.random() * usernameGen.adjectives.length);
-    const rB = Math.floor(Math.random() * usernameGen.nouns.length);
-    return usernameGen.adjectives[rA] + '_' + usernameGen.nouns[rB];
+    // Picks a random username from a set of adjectives and nouns
+    // This username is then removed from being able to be chosen by removing that index pair from available choices
+    const roll = Math.floor(Math.random() * usernameGen.indexes.length);
+
+    const indices = usernameGen.indexes.splice(roll, 1)[0];
+
+    console.log(`indices: ${indices}`)
+
+    return usernameGen.adjectives[indices[0]] + '_' + usernameGen.nouns[indices[1]];
 }
 
+const messages = [];
+const users = [];
+
 io.on('connection', (socket) => {
-    socket.username = pickUsername();
-    socket.color = Colors.random();
-    console.log('a user connected. Giving them username ' + socket.username);
     socket.on('disconnect', () => {
-        console.log(socket.username + ' disconnected');
+        console.log(`${socket.username} left`)
+        io.emit('user left', socket.username);
     });
     socket.on('chat message', (msg) => {
+        if (messages.length >= 200) {
+            messages.shift();
+        }
+        messages.push({'user': socket.username, 'color': socket.color, 'message': msg});
         io.emit('chat message', {
             'user': socket.username,
             'message': msg,
@@ -92,6 +111,21 @@ io.on('connection', (socket) => {
             'color': socket.color
         });
     });
+
+    socket.on('user info', (user) => {
+        if (user) { // User has connected before
+            socket.username = user.username;
+            socket.color = user.color;
+        } else { // New user
+            socket.username = pickUsername();
+            socket.color = Colors.random();
+            socket.emit('user info', {username: socket.username, color: socket.color});
+            users.push(user);
+        }
+        console.log('a user connected with username ' + socket.username);
+        io.emit('user joined', socket.username);
+    });
+    socket.emit('chat info', {current_users: users});
 });
 
 http.listen(3000, () => {
