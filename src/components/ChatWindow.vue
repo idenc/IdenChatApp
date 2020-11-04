@@ -113,6 +113,7 @@ ul {
 #chat-log ul {
   position: absolute;
   bottom: 0;
+  max-height: 100%;
 }
 
 #main-chat {
@@ -139,6 +140,7 @@ ul {
   background: lightblue;
   position: relative;
   grid-area: m;
+  overflow-y: auto;
 }
 
 form {
