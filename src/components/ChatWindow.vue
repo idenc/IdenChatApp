@@ -3,13 +3,18 @@
     <div id="main-chat">
       <div id="chat-log">
         <ul ref="message_box" id="message_box">
+          <li :key="message.id" v-for="message in chat_messages">
+            {{ new Date(message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) }} <span
+              :style="{'color': message.color, 'font-weight': 'bold'}">{{ message.user }}:</span> {{ message.message }}
+          </li>
         </ul>
       </div>
 
       <div id="user-div">
         <ul id="user-list">
           <template v-for="user in users">
-            <li :style="{'color': user.color}" :key="user.username" v-if="user.username === username"><b>{{ user.username }} (you)</b></li>
+            <li :style="{'color': user.color}" :key="user.username" v-if="user.username === username">
+              <b>{{ user.username }} (you)</b></li>
             <li :style="{'color': user.color}" :key="user.username" v-else>{{ user.username }}</li>
           </template>
         </ul>
@@ -36,7 +41,8 @@ export default {
       message: '',
       username: '',
       users: [],
-      color: ''
+      color: '',
+      chat_messages: [],
     }
   },
   methods: {
@@ -60,11 +66,7 @@ export default {
 
     socket.on('chat message', (msg) => {
       const messageBox = this.$refs.message_box;
-      const li = document.createElement('li');
-      const timeStamp = new Date(msg.timestamp);
-      li.innerHTML = `${timeStamp.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
- <span style="color: ${msg.color}; font-weight: bold;">${msg.user}:</span> ${msg.message}`;
-      messageBox.appendChild(li);
+      this.chat_messages.push(msg);
 
       this.$nextTick(() => {
         messageBox.scrollTop = messageBox.scrollHeight;

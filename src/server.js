@@ -4,6 +4,7 @@ const app = require('express')();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
 const serveStatic = require('serve-static');
+const {v4: uuidv4} = require('uuid');
 
 app.use(serveStatic(__dirname + '../dist'));
 
@@ -103,13 +104,15 @@ io.on('connection', (socket) => {
         if (messages.length >= 200) {
             messages.shift();
         }
-        messages.push({'user': socket.username, 'color': socket.color, 'message': msg});
-        io.emit('chat message', {
+        const message = {
             'user': socket.username,
             'message': msg,
             'timestamp': Date.now(),
-            'color': socket.color
-        });
+            'color': socket.color,
+            'id': uuidv4(),
+        };
+        messages.push(message);
+        io.emit('chat message', message);
     });
 
     socket.on('user info', (user) => {
@@ -125,7 +128,7 @@ io.on('connection', (socket) => {
         console.log('a user connected with username ' + socket.username);
         io.emit('user joined', socket.username);
     });
-    socket.emit('chat info', {current_users: users});
+    socket.emit('chat info', {current_users: users, messages: messages});
 });
 
 http.listen(3000, () => {
