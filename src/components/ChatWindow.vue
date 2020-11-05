@@ -10,7 +10,7 @@
                 message.message
               }}
             </li>
-            <li :key="message.id" v-else>
+            <li :key="message.id" :style="{'color': message.color}" v-else>
               {{ message.message }}
             </li>
           </template>
@@ -65,7 +65,6 @@ export default {
         this.username = localStorage.username;
         this.color = localStorage.color;
         const user = {username: this.username, color: this.color}
-        this.chat_messages.push({message: `You are ${user.username}`, id: 'username message'})
         socket.emit('user info', user);
       } else {
         socket.emit('user info', null);

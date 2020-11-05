@@ -159,11 +159,12 @@ function handleCommand(socket, command) {
 }
 
 const messages = [];
-const users = [];
+let users = [];
 
 io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         console.log(`${socket.username} left`)
+        users = users.filter(u => u.username !== socket.username);
         io.emit('user left', socket.username);
     });
     socket.on('chat message', (msg) => {
@@ -188,19 +189,17 @@ io.on('connection', (socket) => {
     });
 
     socket.on('user info', (user) => {
-        if (user) { // User has connected before
+        // If user has connected before and someone has not taken their name
+        if (user && !users.some(u => u.username === user.username)) {
             socket.username = user.username;
             socket.color = user.color;
-            if (!users.some(u => u.username === user.username)) {
-                users.push(user);
-            }
-        } else { // New user
+        } else { // New user or username has been taken
             socket.username = pickUsername();
             socket.color = Colors.random();
             user = {username: socket.username, color: socket.color};
-            socket.emit('user info', user);
-            users.push(user);
         }
+        socket.emit('user info', user);
+        users.push(user);
         console.log('a user connected with username ' + socket.username);
         socket.broadcast.emit('user joined', user);
         socket.emit('chat info', {current_users: users, messages: messages});
