@@ -93,6 +93,19 @@ function commandError(socket, error) {
     socket.emit('command error', {message: error, id: uuidv4()})
 }
 
+/**
+ * Checks whether a color string is a valid hex color
+ * source: https://stackoverflow.com/questions/8027423/how-to-check-if-a-string-is-a-valid-hex-color-representation
+ * Answer by fflorent
+ * @param hex
+ * @returns {boolean}
+ */
+function isHexColor(hex) {
+    return typeof hex === 'string'
+        && hex.length === 6
+        && !isNaN(Number('0x' + hex))
+}
+
 function handleCommand(socket, command) {
     try {
         if (command.startsWith('/name')) {
@@ -117,12 +130,29 @@ function handleCommand(socket, command) {
                 }
             }
         } else if (command.startsWith('/color')) {
-
+            let color = command.split(" ");
+            if (color.length !== 2) {
+                commandError(socket, 'Incorrect number of arguments for changing color. Command should be in the form /color RRGGBB')
+                return;
+            }
+            color = color[1];
+            if (!isHexColor(color)) {
+                commandError(socket, `Invalid color: ${color}`);
+            }
+            color = "#" + color;
+            for (let i = 0; i < users.length; i++) {
+                if (users[i].username === socket.username) {
+                    socket.color = color;
+                    users[i].color = color;
+                    io.emit('color change', {username: socket.username, new_color: color})
+                    return;
+                }
+            }
         } else {
             commandError(socket, `No such command exists: ${command}`);
         }
     } catch (err) {
-        console.err(err);
+        console.error(err);
         commandError(socket, `Failed to apply command: ${command}`);
     }
 

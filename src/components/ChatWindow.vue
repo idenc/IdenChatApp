@@ -111,6 +111,22 @@ export default {
       this.chat_messages.push(err);
     });
 
+    socket.on('color change', (color_info) => {
+      // Update users color and all messages sent by that user
+      for (let i = 0; i < this.users.length; i++) {
+        if (this.users[i].username === color_info.username) {
+          this.users[i].color = color_info.new_color;
+          break;
+        }
+      }
+
+      for (let i = 0; i < this.chat_messages.length; i++) {
+        if (this.chat_messages[i].user === color_info.username) {
+          this.chat_messages[i].color = color_info.new_color;
+        }
+      }
+    });
+
   }
 }
 </script>
