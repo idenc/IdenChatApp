@@ -29,8 +29,7 @@
       </div>
 
       <form @submit.prevent="sendMessage">
-        <input type="text" placeholder="Message..." v-model="message">
-        <input type="submit" value="Submit">
+        <InputBox id="input-box" v-bind:placeholder="'Message'" v-model="message"></InputBox>
       </form>
     </div>
   </div>
@@ -39,11 +38,13 @@
 <script>
 "use strict";
 import io from 'socket.io-client'
+import InputBox from "@/components/InputBox";
 
 const socket = io();
 
 export default {
   name: 'ChatWindow',
+  components: {InputBox},
   data() {
     return {
       message: '',
@@ -143,6 +144,7 @@ ul {
   position: absolute;
   bottom: 0;
   max-height: 100%;
+  color: #d7d5d5;
 }
 
 #main-chat {
@@ -161,12 +163,12 @@ ul {
 }
 
 #user-div {
-  background: grey;
+  background: #1c3450;
   grid-area: r;
 }
 
 #chat-log {
-  background: lightblue;
+  background: #12223b;
   position: relative;
   grid-area: m;
   overflow-y: auto;
@@ -177,20 +179,9 @@ form {
   display: flex;
 }
 
-input[type="text"] {
-  flex: 3
-}
-
-input[type="submit"] {
+#input-box {
+  overflow: hidden;
+  display: flex;
   flex: 1;
-  border: none;
-  background: #555;
-  color: #fff;
-  padding: 7px 20px;
-  cursor: pointer;
-}
-
-input[type="submit"]:hover {
-  background: #666;
 }
 </style>
