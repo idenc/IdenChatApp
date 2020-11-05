@@ -56,6 +56,9 @@ export default {
   },
   methods: {
     sendMessage() {
+      if (this.message === '') {
+        return;
+      }
       socket.emit('chat message', this.message);
       this.message = '';
     }
