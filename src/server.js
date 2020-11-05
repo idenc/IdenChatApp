@@ -84,12 +84,48 @@ function pickUsername() {
     // Picks a random username from a set of adjectives and nouns
     // This username is then removed from being able to be chosen by removing that index pair from available choices
     const roll = Math.floor(Math.random() * usernameGen.indexes.length);
-
     const indices = usernameGen.indexes.splice(roll, 1)[0];
 
-    console.log(`indices: ${indices}`)
-
     return usernameGen.adjectives[indices[0]] + '_' + usernameGen.nouns[indices[1]];
+}
+
+function commandError(socket, error) {
+    socket.emit('command error', {message: error, id: uuidv4()})
+}
+
+function handleCommand(socket, command) {
+    try {
+        if (command.startsWith('/name')) {
+            let name = command.split(" ");
+            if (name.length !== 2) {
+                commandError(socket, 'Incorrect number of arguments for changing name. Command should be in the form /name <new username>')
+                return;
+            }
+            name = name[1];
+            if (users.some(u => u.username === name)) {
+                commandError(socket, `User with username ${name} already exists`);
+                return;
+            }
+            for (let i = 0; i < users.length; i++) {
+                if (users[i].username === socket.username) {
+                    io.emit('user left', users[i].username);
+                    socket.username = name;
+                    users[i].username = name;
+                    io.emit('user joined', users[i]);
+                    socket.emit('user info', {username: socket.username, color: socket.color});
+                    return;
+                }
+            }
+        } else if (command.startsWith('/color')) {
+
+        } else {
+            commandError(socket, `No such command exists: ${command}`);
+        }
+    } catch (err) {
+        console.err(err);
+        commandError(socket, `Failed to apply command: ${command}`);
+    }
+
 }
 
 const messages = [];
@@ -101,34 +137,45 @@ io.on('connection', (socket) => {
         io.emit('user left', socket.username);
     });
     socket.on('chat message', (msg) => {
+        // Keep 200 most recent messages
         if (messages.length >= 200) {
             messages.shift();
         }
-        const message = {
-            'user': socket.username,
-            'message': msg,
-            'timestamp': Date.now(),
-            'color': socket.color,
-            'id': uuidv4(),
-        };
-        messages.push(message);
-        io.emit('chat message', message);
+        // Handle commands
+        if (msg.startsWith('/')) {
+            handleCommand(socket, msg)
+        } else {
+            const message = {
+                'user': socket.username,
+                'message': msg,
+                'timestamp': Date.now(),
+                'color': socket.color,
+                'id': uuidv4(),
+            };
+            messages.push(message);
+            io.emit('chat message', message);
+        }
     });
 
     socket.on('user info', (user) => {
         if (user) { // User has connected before
             socket.username = user.username;
             socket.color = user.color;
+            if (!users.some(u => u.username === user.username)) {
+                users.push(user);
+            }
         } else { // New user
             socket.username = pickUsername();
             socket.color = Colors.random();
-            socket.emit('user info', {username: socket.username, color: socket.color});
+            user = {username: socket.username, color: socket.color};
+            socket.emit('user info', user);
             users.push(user);
         }
         console.log('a user connected with username ' + socket.username);
-        io.emit('user joined', socket.username);
+        socket.broadcast.emit('user joined', user);
+        socket.emit('chat info', {current_users: users, messages: messages});
+        console.log(users);
     });
-    socket.emit('chat info', {current_users: users, messages: messages});
 });
 
 http.listen(3000, () => {

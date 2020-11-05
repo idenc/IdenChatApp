@@ -3,10 +3,18 @@
     <div id="main-chat">
       <div id="chat-log">
         <ul ref="message_box" id="message_box">
-          <li :key="message.id" v-for="message in chat_messages">
-            {{ new Date(message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) }} <span
-              :style="{'color': message.color, 'font-weight': 'bold'}">{{ message.user }}:</span> {{ message.message }}
-          </li>
+          <template v-for="message in chat_messages">
+            <li :key="message.id" v-if="message.user">
+              {{ new Date(message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) }} <span
+                :style="{'color': message.color, 'font-weight': 'bold'}">{{ message.user }}:</span> {{
+                message.message
+              }}
+            </li>
+            <li :key="message.id" v-else>
+              {{ message.message }}
+            </li>
+          </template>
+
         </ul>
       </div>
 
@@ -57,7 +65,7 @@ export default {
         this.username = localStorage.username;
         this.color = localStorage.color;
         const user = {username: this.username, color: this.color}
-        this.users.push(user);
+        this.chat_messages.push({message: `You are ${user.username}`, id: 'username message'})
         socket.emit('user info', user);
       } else {
         socket.emit('user info', null);
@@ -78,23 +86,29 @@ export default {
       localStorage.color = user.color;
       this.username = user.username;
       this.color = user.color;
-      this.users.push(user);
+      this.chat_messages.push({message: `You are ${user.username}`, id: 'username message'})
     })
 
     socket.on('user joined', (user) => {
-      if (user !== this.username) {
-        this.users.push(user);
-      }
+      console.log(`user joined: ${user}`)
+      this.users.push(user);
     });
 
     socket.on('user left', (user) => {
-      this.users = this.users.filter(u => u !== user);
+      console.log(`user left: ${user}`)
+      this.users = this.users.filter(u => u.username !== user);
     });
 
     // Server sends the chat history and user list
     socket.on('chat info', (info) => {
+      console.log(`chat info: ${info}`)
       this.users.push(...info.current_users);
       this.chat_messages.push(...info.messages);
+    });
+
+    socket.on('command error', (err) => {
+      err.color = 'red';
+      this.chat_messages.push(err);
     });
 
   }
