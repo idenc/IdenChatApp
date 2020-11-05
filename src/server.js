@@ -176,6 +176,10 @@ io.on('connection', (socket) => {
         if (msg.startsWith('/')) {
             handleCommand(socket, msg)
         } else {
+            // Replace emojis
+            msg = msg.replace(/:\)/g, '😁');
+            msg = msg.replace(/:\(/g, '🙁');
+            msg = msg.replace(/:o/g, '😲');
             const message = {
                 'user': socket.username,
                 'message': msg,
