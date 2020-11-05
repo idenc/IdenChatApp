@@ -1,8 +1,8 @@
 <template>
   <div>
     <div id="main-chat">
-      <div id="chat-log">
-        <ul ref="message_box" id="message_box">
+      <div id="chat-log" ref="message_box">
+        <ul id="message_box">
           <template v-for="message in chat_messages">
             <li :key="message.id" v-if="message.user">
               {{ new Date(message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) }} <span
@@ -145,9 +145,14 @@ ul {
 
 #chat-log ul {
   position: absolute;
+  padding: 0 10px;
   bottom: 0;
-  max-height: 100%;
+  max-height: calc(100% - 20px);
   color: #d7d5d5;
+}
+
+#chat-log ul > :last-child {
+  margin-bottom: 10px;
 }
 
 #main-chat {
