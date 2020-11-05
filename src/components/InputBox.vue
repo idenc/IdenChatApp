@@ -70,7 +70,7 @@ a:hover {
 .form__field {
   background: #fff;
   flex: 1;
-  color: #a3a3a3;
+  color: #5b5a5a;
   font: inherit;
   box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.1);
   border: 0;
